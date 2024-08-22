@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
       // Update state
       setUserInfo(user);
 
-      // Redirect to home page
+      // Redirect based on user role
       if (user.isAdmin) {
         navigate('/admin');
       } else {
@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }) => {
 
     } catch (err) {
       console.error('Login failed:', err.response?.data?.message || err.message);
-      throw err;
+      throw err; // Optionally handle error in UI
     }
   };
 
@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }) => {
       navigate('/home'); // Redirect to home page after logout
     } catch (err) {
       console.error('Logout failed:', err.response?.data?.message || err.message);
-      throw err;
+      throw err; // Optionally handle error in UI
     }
   };
 
@@ -71,10 +71,9 @@ export const AuthProvider = ({ children }) => {
     try {
       await axiosInstance.post('/users/signup', { name, email, password });
       await login(email, password); // Log in immediately after signup
-
     } catch (err) {
       console.error('Signup failed:', err.response?.data?.message || err.message);
-      throw err;
+      throw err; // Optionally handle error in UI
     }
   };
 

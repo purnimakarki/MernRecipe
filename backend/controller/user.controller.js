@@ -7,6 +7,8 @@ import { isEmail } from "../utils/validator.js";
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import { recommendRecipesTest } from "../utils/recommendationUtil.js";
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -301,7 +303,39 @@ const getSavedRecipes = asyncHandler(async (req, res, next) => {
 });
 
 
+const getRecommendations = async (req, res) => {
+  try {
+    const recommendations = await recommendRecipesTest(req.user._id);
+    if (!Array.isArray(recommendations)) {
+      throw new Error('Recommendations are not in the expected format');
+    }
 
+    // Convert recipe images to Base64 format for each recommended recipe
+    const recommendationsWithImages = await Promise.all(recommendations.map(async (recipe) => {
+      if (recipe.recipeImg) {
+        try {
+          const imagePath = path.join(__dirname, '..', recipe.recipeImg);
+          if (fs.existsSync(imagePath)) {
+            const imageData = fs.readFileSync(imagePath);
+            recipe.recipeImg = `data:image/jpeg;base64,${imageData.toString('base64')}`;
+          } else {
+            console.error('Image file not found at:', imagePath);
+            recipe.recipeImg = ''; // Handle missing image file
+          }
+        } catch (err) {
+          console.error('Error reading image file:', err);
+          recipe.recipeImg = ''; // Handle the case where the image cannot be read
+        }
+      }
+      return recipe;
+    }));
+
+    res.json(recommendationsWithImages);
+  } catch (error) {
+    console.error('Error in getRecommendations:', error.message);
+    res.status(500).json({ message: 'Failed to get recommendations', error: error.message });
+  }
+};
 
 export {
   signup,
@@ -314,5 +348,6 @@ export {
   saveRecipe,
   unsaveRecipe,
   getSavedRecipes ,
-  getUserById
+  getUserById,
+  getRecommendations
 };

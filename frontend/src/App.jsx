@@ -15,6 +15,8 @@ import SavedRecipesPage from './pages/SavedRecipePage';
 import MyRecipes from './pages/MyRecipePage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UserDetails from './pages/admin/UserDetails';
+import { Navigate } from 'react-router-dom';
+import Recommendation from './components/Recommendation';
 
 function App() {
   return (
@@ -22,24 +24,28 @@ function App() {
       <Header />
       <main>
         <Routes>
-        <Route path="/" element={<HomePage />} />
-  <Route path="/home" element={<HomePage />} />
-  <Route path="/recipes/:id" element={<RecipeDetailPage />} />
-  <Route path="/saved-recipes" element={<SavedRecipesPage />} />
-  <Route path="/login" element={<LoginPage />} />
-  <Route path="/signup" element={<SignupPage />} />
-  <Route path="/my-recipe" element={<ProtectedRoute><MyRecipes /></ProtectedRoute>} />
-  <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-  <Route path="/create-recipe" element={<ProtectedRoute><CreateRecipePage /></ProtectedRoute>} />
-  <Route path="/edit-recipe/:id" element={<ProtectedRoute><EditRecipePage /></ProtectedRoute>} />
+          {/* Public Routes */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/home" element={<HomePage />} />
+          <Route path="/recipes/:id" element={<RecipeDetailPage />} />
+          <Route path="/saved-recipes" element={<SavedRecipesPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
 
-  {/* Admin routes */}
-  <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-  <Route path="/admin/user-details/:id" element={<AdminRoute><UserDetails /></AdminRoute>} />
-      
-      
-  
-          </Routes>
+          {/* Regular User Routes */}
+          <Route path="/my-recipe" element={<ProtectedRoute><MyRecipes /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path="/create-recipe" element={<ProtectedRoute><CreateRecipePage /></ProtectedRoute>} />
+          <Route path="/edit-recipe/:id" element={<ProtectedRoute><EditRecipePage /></ProtectedRoute>} />
+          <Route path="/recommended" element={<ProtectedRoute><Recommendation /></ProtectedRoute>} />
+
+          {/* Admin Routes */}
+          <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+          <Route path="/admin/user-details/:id" element={<AdminRoute><UserDetails /></AdminRoute>} />
+          
+          {/* Redirect for undefined routes */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
       </main>
       <Footer />
     </>

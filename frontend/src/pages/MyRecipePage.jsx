@@ -4,6 +4,7 @@ import AuthContext from '../context/AuthContext';
 import { Button, Card, Container, Row, Col, Modal } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { DeleteOutlined } from '@ant-design/icons';
+import Recommendation from '../components/Recommendation';
 
 const MyRecipes = () => {
   const [recipes, setRecipes] = useState([]);
@@ -178,6 +179,7 @@ const MyRecipes = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+      <Recommendation/>
     </Container>
   );
 };

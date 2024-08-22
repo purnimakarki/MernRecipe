@@ -21,11 +21,14 @@ const createRecipe = asyncHandler(async (req, res, next) => {
   }
 
   try {
+    // Parse ingredients from JSON string to array
+    const parsedIngredients = JSON.parse(ingredients);
+
     const newRecipe = await Recipe.create({
       title,
       description,
       category,
-      ingredients,
+      ingredients: parsedIngredients, // Store as an array
       instructions,
       cookingTime,
       userOwner,

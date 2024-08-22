@@ -10,7 +10,8 @@ import {
   saveRecipe,
   unsaveRecipe,
   getSavedRecipes,
-  getUserById
+  getUserById,
+  getRecommendations
 } from "../controller/user.controller.js"; // Adjust the path if necessary
 import { checkAuth, checkAdmin } from '../middleware/auth.middleware.js';
 
@@ -26,10 +27,12 @@ router.put('/profile', checkAuth, updateUserProfile);
 
 router.get('/details/:id', checkAuth, checkAdmin, getUserById);
 
-
 router.post('/:id/saved-recipes', checkAuth, saveRecipe);
 router.delete('/:id/saved-recipes', checkAuth, unsaveRecipe);
 router.get('/:id/saved-recipes', checkAuth, getSavedRecipes);
+
+// Recommendation route
+router.get('/recommendations/:id', checkAuth, getRecommendations);
 
 // Admin routes
 router.get('/:id', getUserById);

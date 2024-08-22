@@ -4,6 +4,7 @@ import { Container, Form, Button, Alert, Card } from 'react-bootstrap';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import axios from 'axios';
 
+
 function ProfilePage() {
   const { userInfo, updateUserProfile } = useContext(AuthContext);
 
@@ -116,6 +117,7 @@ function ProfilePage() {
           </Form>
         </Card.Body>
       </Card>
+      
 
       <style>
         {`

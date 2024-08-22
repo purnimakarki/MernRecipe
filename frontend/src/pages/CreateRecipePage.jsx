@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import AuthContext from '../context/AuthContext';
-import { Container, Form, Button, Alert } from 'react-bootstrap';
+import { Container, Form, Button, Alert, ListGroup } from 'react-bootstrap';
 
 function CreateRecipePage() {
   const { userInfo } = useContext(AuthContext);
@@ -12,7 +12,8 @@ function CreateRecipePage() {
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
-  const [ingredients, setIngredients] = useState('');
+  const [ingredients, setIngredients] = useState([]);
+  const [newIngredient, setNewIngredient] = useState('');
   const [instructions, setInstructions] = useState('');
   const [cookingTime, setCookingTime] = useState('');
   const [recipeImg, setRecipeImg] = useState(null);
@@ -29,12 +30,28 @@ function CreateRecipePage() {
     setRecipeImg(e.target.files[0]);
   };
 
+  // Handle adding new ingredient
+  const handleIngredientKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (newIngredient.trim() !== '') {
+        setIngredients((prevIngredients) => [...prevIngredients, newIngredient.trim()]);
+        setNewIngredient('');
+      }
+    }
+  };
+
+  // Handle removing an ingredient
+  const handleRemoveIngredient = (index) => {
+    setIngredients((prevIngredients) => prevIngredients.filter((_, i) => i !== index));
+  };
+
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Validate form data
-    if (!title || !category || !description || !ingredients || !instructions || !cookingTime || !recipeImg) {
+    if (!title || !category || !description || ingredients.length === 0 || !instructions || !cookingTime || !recipeImg) {
       setError('Please fill in all fields');
       return;
     }
@@ -44,7 +61,7 @@ function CreateRecipePage() {
     formData.append('title', title);
     formData.append('category', category);
     formData.append('description', description);
-    formData.append('ingredients', JSON.stringify(ingredients.split(',').map(item => item.trim())));
+    formData.append('ingredients', JSON.stringify(ingredients)); // Send as JSON string
     formData.append('instructions', instructions);
     formData.append('cookingTime', cookingTime);
     formData.append('recipeImg', recipeImg);
@@ -64,7 +81,6 @@ function CreateRecipePage() {
     } catch (error) {
       // Handle errors
       console.error('Failed to create recipe', error);
-      console.log(error.message)
       setError('There was an error creating the recipe. Please try again.');
     }
   };
@@ -113,15 +129,25 @@ function CreateRecipePage() {
         </Form.Group>
 
         <Form.Group className="mb-3">
-          <Form.Label style={{ fontWeight: 'bold' }}>Ingredients (comma-separated):</Form.Label>
+          <Form.Label style={{ fontWeight: 'bold' }}>Ingredients:</Form.Label>
           <Form.Control
             type="text"
-            value={ingredients}
-            onChange={(e) => setIngredients(e.target.value)}
-            required
-            placeholder="Enter ingredients"
+            value={newIngredient}
+            onChange={(e) => setNewIngredient(e.target.value)}
+            onKeyDown={handleIngredientKeyDown}
+            placeholder="Press Enter to add ingredient"
             style={{ borderRadius: '4px' }}
           />
+          <ListGroup className="mt-2">
+            {ingredients.map((ingredient, index) => (
+              <ListGroup.Item key={index} className="d-flex justify-content-between align-items-center">
+                {ingredient}
+                <Button variant="danger" size="sm" onClick={() => handleRemoveIngredient(index)}>
+                  &times;
+                </Button>
+              </ListGroup.Item>
+            ))}
+          </ListGroup>
         </Form.Group>
 
         <Form.Group className="mb-3">

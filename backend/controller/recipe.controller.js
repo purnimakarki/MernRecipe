@@ -53,7 +53,7 @@ const createRecipe = asyncHandler(async (req, res, next) => {
 // @access Public
 const getRecipes = asyncHandler(async (req, res, next) => {
   try {
-    const recipes = await Recipe.find().populate("userOwner", "name");
+    const recipes = await Recipe.find().populate("creator", "name");
 
     // Convert image paths to Base64
     const recipesWithImages = await Promise.all(
@@ -84,7 +84,7 @@ const getRecipes = asyncHandler(async (req, res, next) => {
 // @route GET /api/v1/recipes/:id
 // @access Public
 const getRecipe = asyncHandler(async (req, res, next) => {
-  try {
+  try { 
     const recipe = await Recipe.findById(req.params.id)
     .populate({
       path: 'reviews.user', // Populate the user field in reviews

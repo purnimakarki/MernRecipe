@@ -17,6 +17,8 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import UserDetails from './pages/admin/UserDetails';
 import { Navigate } from 'react-router-dom';
 import Recommendation from './components/Recommendation';
+import UserEdit from './pages/admin/UserEdit';
+import RecipeEdit from './pages/admin/RecipeEdit';
 
 function App() {
   return (
@@ -42,6 +44,8 @@ function App() {
           {/* Admin Routes */}
           <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
           <Route path="/admin/user-details/:id" element={<AdminRoute><UserDetails /></AdminRoute>} />
+          <Route path="/admin/user-edit/:userId" element={<AdminRoute><UserEdit /></AdminRoute>} /> {/* Add route for UserEdit */}
+          <Route path="/admin/recipe-edit/:recipeId" element={<AdminRoute><RecipeEdit /></AdminRoute>} /> 
           
           {/* Redirect for undefined routes */}
           <Route path="*" element={<Navigate to="/" />} />

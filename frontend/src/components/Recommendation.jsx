@@ -5,7 +5,7 @@ import AuthContext from '../context/AuthContext';
 
 const Recommendation = () => {
   const [loading, setLoading] = useState(true);
-  const [recipes, setRecipes] = useState([]);
+  const [recommendedRecipes, setRecommendedRecipes] = useState([]);
   const [error, setError] = useState(null);
 
   const { userInfo } = useContext(AuthContext);
@@ -25,19 +25,28 @@ const Recommendation = () => {
         const response = await axios.get(`http://localhost:5000/api/v1/users/recommendations/${userInfo._id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        console.log('API Response:', response); // Log the entire response
+        console.log('API Response:', response);
 
-        // Check if response data is in the expected format
         if (response.headers['content-type'].includes('application/json')) {
-          console.log('Response data:', response.data); // Log the response data
+          console.log('Response data:', response.data);
           if (Array.isArray(response.data)) {
-            setRecipes(response.data);
+            const similarityRecipes = response.data.filter(recipe => recipe.recommendedBy === 'similarity');
+            const randomRecipes = response.data.filter(recipe => recipe.recommendedBy === 'random');
+
+            const finalRecommendations = [...similarityRecipes];
+            const neededCount = 5 - finalRecommendations.length;
+
+            if (neededCount > 0) {
+              finalRecommendations.push(...randomRecipes.slice(0, neededCount));
+            }
+
+            setRecommendedRecipes(finalRecommendations);
           } else {
-            console.warn('Unexpected response format:', response.data); // Log unexpected format
+            console.warn('Unexpected response format:', response.data);
             setError('Unexpected response format');
           }
         } else {
-          console.warn('Unexpected content type:', response.headers['content-type']); // Log unexpected content type
+          console.warn('Unexpected content type:', response.headers['content-type']);
           setError('Unexpected response format');
         }
       } catch (err) {
@@ -68,19 +77,31 @@ const Recommendation = () => {
   return (
     <div>
       <h2>Recommended Recipes</h2>
-      <div className="recipe-grid">
-        {recipes.length > 0 ? (
-          recipes.map((recipe) => (
+      <div style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+      }}>
+        {recommendedRecipes.length > 0 ? (
+          recommendedRecipes.map((recipe) => (
             <Card
               key={recipe._id}
               title={recipe.title}
-              cover={<img alt={recipe.title} src={recipe.recipeImg || 'placeholder-image-url'} />}
-              style={{ width: 300, margin: '10px' }}
+              cover={<img alt={recipe.title} src={recipe.recipeImg || 'placeholder-image-url'} style={{ height: '200px', objectFit: 'cover' }} />}
+              style={{
+                width: 'calc(33.33% - 20px)', // Three cards per row with margins
+                margin: '10px',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
             >
-              <p>{recipe.description}</p>
-              <p><strong>Category:</strong> {recipe.category}</p>
-              <p><strong>Cooking Time:</strong> {recipe.cookingTime} mins</p>
-              <p><strong>Rating:</strong> {recipe.rating}</p>
+              <div style={{ padding: '10px', flexGrow: 1 }}>
+                <p>{recipe.description}</p>
+                <p><strong>Category:</strong> {recipe.category}</p>
+                <p><strong>Cooking Time:</strong> {recipe.cookingTime} mins</p>
+                <p><strong>Rating:</strong> {recipe.rating}</p>
+                <p><strong>Recommended By:</strong> {recipe.recommendedBy}</p>
+              </div>
             </Card>
           ))
         ) : (

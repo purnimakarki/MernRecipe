@@ -12,6 +12,7 @@ function RecipeDetailPage() {
   const [error, setError] = useState('');
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [recipeToDelete, setRecipeToDelete] = useState(null);
+  const [submittingReview, setSubmittingReview] = useState(false); // State for review submission loading
   const userInfo = JSON.parse(localStorage.getItem('userInfo')) || {};
   const navigate = useNavigate();
 
@@ -65,12 +66,14 @@ function RecipeDetailPage() {
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
+    setSubmittingReview(true); // Set loading state
     
     try {
       const token = userInfo.token || localStorage.getItem('token');
       
       if (!token) {
         setError('No authentication token found. Please log in again.');
+        setSubmittingReview(false); // Reset loading state
         return;
       }
       
@@ -82,12 +85,21 @@ function RecipeDetailPage() {
       const response = await axios.post(`/api/v1/recipe/${id}/reviews`, reviewData, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      
-      setReviews((prevReviews) => [...prevReviews, response.data]); // Add the new review to the existing reviews
+
+      // Ensure response contains the necessary data
+      const newReviewWithUserInfo = {
+        ...response.data,
+        user: { name: userInfo.name, _id: userInfo._id }, // Include user info
+      };
+
+      // Update reviews state
+      setReviews((prevReviews) => [...prevReviews, newReviewWithUserInfo]);
       setNewReview({ rating: '', comment: '' }); // Reset the review form
     } catch (error) {
       console.error('Error submitting review:', error.response?.data || error.message);
       setError(error.response?.data?.message || 'Failed to submit review. Please try again later.');
+    } finally {
+      setSubmittingReview(false); // Reset loading state
     }
   };
 
@@ -126,7 +138,14 @@ function RecipeDetailPage() {
             <Card.Subtitle className="mb-2 text-muted">{recipe.category}</Card.Subtitle>
             <Card.Text><strong>Description:</strong> {recipe.description}</Card.Text>
             <Card.Text><strong>Ingredients:</strong> {recipe.ingredients.join(', ')}</Card.Text>
-            <Card.Text><strong>Instructions:</strong> {recipe.instructions}</Card.Text>
+            <Card.Text><strong>Instructions:</strong></Card.Text>
+            <ListGroup>
+              {recipe.instructions.split('\n').map((step, index) => (
+                <ListGroup.Item key={index}>
+                  <strong>Step {index + 1}:</strong> {step}
+                </ListGroup.Item>
+              ))}
+            </ListGroup>
             <Card.Text><strong>Cooking Time:</strong> {recipe.cookingTime} minutes</Card.Text>
             {userInfo._id === recipe.userOwner ? (
               <div>
@@ -163,7 +182,9 @@ function RecipeDetailPage() {
                       required 
                     />
                   </Form.Group>
-                  <Button variant="primary" type="submit" className="mt-3">Submit Review</Button>
+                  <Button variant="primary" type="submit" className="mt-3" disabled={submittingReview}>
+                    {submittingReview ? 'Submitting...' : 'Submit Review'}
+                  </Button>
                 </Form>
               </div>
             )}

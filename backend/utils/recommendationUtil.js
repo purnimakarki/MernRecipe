@@ -45,7 +45,8 @@ export const recommendRecipesTest = async (userId) => {
     // If no saved recipes, return a random set of recipes
     if (savedRecipes.length === 0) {
       const allRecipes = await Recipe.find({});
-      return getRandomRecipes(allRecipes, 5);
+      const randomRecipes = getRandomRecipes(allRecipes, 5);
+      return randomRecipes.map(recipe => ({ ...recipe.toObject(), recommendedBy: 'random' }));
     }
 
     // Calculate similarity scores between user's saved recipes and all other recipes
@@ -69,7 +70,7 @@ export const recommendRecipesTest = async (userId) => {
     recipeScores.sort((a, b) => b.score - a.score);
 
     // Extract recommended recipes based on the highest similarity scores
-    let recommendedRecipes = recipeScores.map(r => r.recipe);
+    let recommendedRecipes = recipeScores.map(r => ({ ...r.recipe.toObject(), recommendedBy: 'similarity' }));
 
     console.log('Initial Recommendations:', recommendedRecipes); // Debug: Log recommendations
 
@@ -77,9 +78,14 @@ export const recommendRecipesTest = async (userId) => {
     const alreadyRecommendedIds = recommendedRecipes.map(r => r._id.toString());
     const allExcludedIds = [...savedRecipeIds, ...alreadyRecommendedIds];
 
-    if (recommendedRecipes.length < 5) {
-      const additionalRecipes = getRandomRecipes(allRecipes, 5 - recommendedRecipes.length, allExcludedIds);
-      recommendedRecipes.push(...additionalRecipes);
+    // Calculate how many more recipes are needed
+    const neededCount = 5 - recommendedRecipes.length;
+
+    if (neededCount > 0) {
+      const additionalRecipes = getRandomRecipes(allRecipes, neededCount, allExcludedIds);
+      additionalRecipes.forEach(recipe => {
+        recommendedRecipes.push({ ...recipe.toObject(), recommendedBy: 'random' }); // Tag as random
+      });
     }
 
     // Ensure no duplicates by creating a Set of unique recipe IDs
@@ -96,3 +102,4 @@ export const recommendRecipesTest = async (userId) => {
     return [];
   }
 };
+

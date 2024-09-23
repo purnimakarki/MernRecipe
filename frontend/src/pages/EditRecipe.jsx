@@ -20,20 +20,24 @@ function EditRecipePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Fetch recipe details on mount
   useEffect(() => {
     const fetchRecipe = async () => {
       try {
         const { data } = await axios.get(`/api/v1/recipe/${id}`);
+
+        // Ensure that the logged-in user owns the recipe
         if (data.userOwner !== userInfo._id) {
           alert('You are not authorized to edit this recipe.');
           navigate(`/recipe/${id}`);
           return;
         }
 
+        // Populate form fields with existing recipe data
         setTitle(data.title);
         setCategory(data.category);
         setDescription(data.description);
-        setIngredients(data.ingredients.join(', '));
+        setIngredients(data.ingredients.join(', ')); // Convert array to comma-separated string
         setInstructions(data.instructions);
         setCookingTime(data.cookingTime);
         setLoading(false);
@@ -47,6 +51,7 @@ function EditRecipePage() {
     fetchRecipe();
   }, [id, userInfo._id, navigate]);
 
+  // Handle image upload
   const handleImageUpload = (e) => {
     setRecipeImg(e.target.files[0]);
   };
@@ -54,38 +59,82 @@ function EditRecipePage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Ensure that all fields are filled
     if (!title || !category || !description || !ingredients || !instructions || !cookingTime) {
       alert('Please fill in all fields');
       return;
     }
 
-    const formData = new FormData();
-    formData.append('title', title);
-    formData.append('category', category);
-    formData.append('description', description);
-    formData.append('ingredients', JSON.stringify(ingredients.split(',').map(ingredient => ingredient.trim())));
-    formData.append('instructions', instructions);
-    formData.append('cookingTime', cookingTime);
-    if (recipeImg) {
-      formData.append('recipeImg', recipeImg);
-    }
+    // Prepare the data to be sent to the API
+    const recipeData = {
+      title,
+      category,
+      description,
+      ingredients: ingredients.split(',').map((ingredient) => ingredient.trim()),
+      instructions,
+      cookingTime,
+    };
 
     try {
-      await axios.put(`/api/v1/recipe/${id}`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      // If an image is selected, use FormData to send the image
+      if (recipeImg) {
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('category', category);
+        formData.append('description', description);
+        formData.append('ingredients', JSON.stringify(recipeData.ingredients));
+        formData.append('instructions', instructions);
+        formData.append('cookingTime', cookingTime);
+        formData.append('recipeImg', recipeImg);
+
+        // Log FormData entries for debugging
+        for (const [key, value] of formData.entries()) {
+          console.log(`${key}:`, value);
+        }
+
+        await axios.put(`/api/v1/recipe/${id}`, formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+
+      } else {
+        // If no image is selected, send JSON data
+        await axios.put(`/api/v1/recipe/${id}`, recipeData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+      }
+
+      alert('Recipe updated successfully!');
       navigate(`/recipes/${id}`);
+
     } catch (error) {
       console.error('Error updating recipe:', error.response?.data || error.message);
-      setError('Failed to update recipe. Please try again later.');
+      setError(`Failed to update recipe: ${error.response?.data?.message || error.message}`);
     }
   };
 
-  if (loading) return <Container className="text-center mt-5"><Spinner animation="border" role="status"><span className="visually-hidden">Loading...</span></Spinner></Container>;
-  if (error) return <Container className="mt-5"><Alert variant="danger">{error}</Alert></Container>;
+  if (loading) {
+    return (
+      <Container className="text-center mt-5">
+        <Spinner animation="border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </Spinner>
+      </Container>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container className="mt-5">
+        <Alert variant="danger">{error}</Alert>
+      </Container>
+    );
+  }
 
   return (
     <Container className="mt-5">
@@ -155,10 +204,7 @@ function EditRecipePage() {
 
         <Form.Group controlId="formRecipeImg" className="mb-3">
           <Form.Label>Recipe Image</Form.Label>
-          <Form.Control
-            type="file"
-            onChange={handleImageUpload}
-          />
+          <Form.Control type="file" onChange={handleImageUpload} />
         </Form.Group>
 
         <Button variant="primary" type="submit" style={{ width: '100%' }}>

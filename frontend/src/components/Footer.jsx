@@ -5,7 +5,7 @@ function Footer() {
   const footerStyle = {
     backgroundColor: '#343a40',
     color: '#ffffff',
-    padding: '2rem 0',
+    padding: '1rem 0', // Reduced padding
     textAlign: 'left',
   };
 
@@ -21,7 +21,7 @@ function Footer() {
   };
 
   const headingStyle = {
-    marginBottom: '1rem',
+    marginBottom: '0.5rem', // Reduced margin
     fontSize: '1.25rem',
   };
 
@@ -51,7 +51,7 @@ function Footer() {
 
   const footerBottomStyle = {
     textAlign: 'center',
-    padding: '1rem 0',
+    padding: '0.5rem 0', // Reduced padding
     borderTop: '1px solid #495057',
   };
 
